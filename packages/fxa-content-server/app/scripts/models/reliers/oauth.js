@@ -362,6 +362,31 @@ var OAuthRelier = Relier.extend({
     return this._wantsScopeThatHasKeys;
   },
 
+  validatePromptNoneRequest(account) {
+    if (this.get('prompt') !== Constants.OAUTH_PROMPT_NONE) {
+      return true;
+    }
+
+    if (! this.isTrusted()) {
+      throw OAuthErrors.toError('PROMPT_NONE_WITH_UNTRUSTED');
+    }
+
+    if (this.wantsKeys()) {
+      throw OAuthErrors.toError('PROMPT_NONE_WITH_KEYS');
+    }
+
+    if (account.isDefault()) {
+      throw OAuthErrors.toError('PROMPT_NONE_NOT_SIGNED_IN');
+    }
+
+    const loginHint = this.get('loginHint');
+    if (loginHint && loginHint !== account.get('email')) {
+      throw OAuthErrors.toError('PROMPT_NONE_DIFFERENT_USER_SIGNED_IN');
+    }
+
+    return true;
+  },
+
   /**
    * Check whether additional permissions are requested from
    * the given account

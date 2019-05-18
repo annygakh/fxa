@@ -136,6 +136,10 @@ $(document).ready(function() {
       authenticate('two_step_authentication');
     });
 
+    $('button.prompt-none').click(function(ev) {
+    	authenticate('prompt_none');
+    });
+
     // upon click of logout link navigator.id.logout()
     $('#logout').click(function(ev) {
       ev.preventDefault();

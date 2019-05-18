@@ -146,6 +146,22 @@ var ERRORS = {
     errno: 1006,
     message: 'Invalid pairing client',
   },
+  PROMPT_NONE_WITH_UNTRUSTED: {
+    errno: 1007,
+    message: 'prompt=none can only be used with trusted clients'
+  },
+  PROMPT_NONE_WITH_KEYS: {
+    errno: 1008,
+    message: 'prompt=none cannot be used when requesting keys'
+  },
+  PROMPT_NONE_NOT_SIGNED_IN: {
+    errno: 1009,
+    message: t('User is not signed in')
+  },
+  PROMPT_NONE_DIFFERENT_USER_SIGNED_IN: {
+    errno: 1010,
+    message: t('%(email) is not signed in')
+  }
 };
 /*eslint-enable sorting/sort-object-props*/
 
