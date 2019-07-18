@@ -25,18 +25,15 @@
 
           {{#clients}}
             {{#isWebSession}}
-                <li class="{{deviceType}}"
-                    {{#genericOS}}data-os="{{genericOS}}"{{/genericOS}}
-                    data-name="{{name}}"
-                    id="{{id}}">
-                    <div class="client-name" title="{{title}}">{{title}}</div>
+                <li>
+                  {{title}}
                 </li>
             {{/isWebSession}}
 
             {{#isOAuthApp}}
-                <li class="{{deviceType}}" data-name="{{name}}" id="{{id}}">
-                  <div class="client-name" title="{{title}}">{{name}}</div>
-                </li>
+              <li>
+                {{name}}
+              </li>
             {{/isOAuthApp}}
 
         {{/clients}}
@@ -46,18 +43,18 @@
 
       <ul class="delete-account-checkbox-list">
         <li class='delete-account-checkbox-list-item'>
-          <input id="delete-account-permanent" type="checkbox" value="delete-account-permanent" class="delete-account-checkbox" />
-          <label for="delete-account-permanent">{{#t}}Any subscriptions you have will be cancelled{{/t}}</label>
-        </li>
-
-        <li class='delete-account-checkbox-list-item'>
-          <input id="delete-account-lose-access" type="checkbox" value="delete-account-lose-access" class="delete-account-checkbox" />
-          <label for="delete-account-lose-access">{{#t}}You may lose saved information and features within Mozilla products{{/t}}</label>
+          <input id="delete-account-subscriptions" type="checkbox" value="delete-account-subscriptions" class="delete-account-checkbox" />
+          <label for="delete-account-subscriptions">{{#t}}Any subscriptions you have will be cancelled{{/t}}</label>
         </li>
 
         <li class='delete-account-checkbox-list-item'>
           <input id="delete-account-saved-info" type="checkbox" value="delete-account-saved-info" class="delete-account-checkbox" />
-          <label for="delete-account-saved-info">{{#t}}Reactivating with this email may not restore your saved information{{/t}}</label>
+          <label for="delete-account-saved-info">{{#t}}You may lose saved information and features within Mozilla products{{/t}}</label>
+        </li>
+
+        <li class='delete-account-checkbox-list-item'>
+          <input id="delete-account-reactivate" type="checkbox" value="delete-account-reactivate" class="delete-account-checkbox" />
+          <label for="delete-account-reactivate">{{#t}}Reactivating with this email may not restore your saved information{{/t}}</label>
         </li>
       </ul>
 

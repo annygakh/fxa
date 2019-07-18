@@ -39,19 +39,10 @@ var View = FormView.extend({
   _formatTitleAndScope(items) {
     return items.map(item => {
       item.title = item.name;
-
-      if (item.scope) item.title += `- ${item.scope}`;
-
-      if (item.clientType === CLIENT_TYPE_WEB_SESSION) {
-        if (item.userAgent) {
-          item.title = this.translate(t('Web Session, %(userAgent)s'), {
-            userAgent: item.userAgent,
-          });
-        } else {
-          item.title = t('Web Session');
-        }
+      if (item.scope) item.title += ` - ${item.scope}`;
+      if (item.clientType === CLIENT_TYPE_WEB_SESSION && item.userAgent) {
+        item.title = item.userAgent;
       }
-
       return item;
     });
   },
