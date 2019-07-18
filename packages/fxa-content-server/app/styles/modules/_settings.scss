@@ -388,6 +388,11 @@ section.modal-panel {
   ul {
     color: $faint-text-color;
   }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
 }
 
 .client-list {

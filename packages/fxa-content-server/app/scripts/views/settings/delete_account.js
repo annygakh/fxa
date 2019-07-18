@@ -32,6 +32,7 @@ var View = FormView.extend({
         notifier: options.notifier,
       });
     }
+    this._hasTwoColumnProductList = false;
     this._activeSubscriptions = [];
   },
 
@@ -62,6 +63,7 @@ var View = FormView.extend({
       clients: this._formatTitleAndScope(clients),
       isPanelOpen: this.isPanelOpen(),
       subscriptions: this._activeSubscriptions,
+      hasTwoColumnProductList: this._hasTwoColumnProductList,
     });
   },
 
@@ -77,15 +79,18 @@ var View = FormView.extend({
     return Promise.all([
       this._fetchAttachedClients(),
       this._fetchActiveSubscriptions(),
-    ]).then(() => this.render());
+    ]).then(() => {
+      this._hasTwoColumnProductList = this._setHasTwoColumnProductList();
+      return this.render();
+    });
   },
 
   _fetchActiveSubscriptions() {
     const account = this.getSignedInAccount();
     const start = Date.now();
-    return account.getSettingsData().then(settingsData => {
-      this.logFlowEvent(`timing.subscriptions.fetch.${Date.now() - start}`);
-      this._activeSubscriptions = settingsData.subscriptions;
+    return account.getSettingsData().then(({ subscriptions }) => {
+      this.logFlowEvent(`timing.settings.fetch.${Date.now() - start}`);
+      this._activeSubscriptions = subscriptions;
     });
   },
 
@@ -94,6 +99,19 @@ var View = FormView.extend({
     return this._attachedClients.fetchClients(this.user).then(() => {
       this.logFlowEvent(`timing.clients.fetch.${Date.now() - start}`);
     });
+  },
+
+  _setHasTwoColumnProductList() {
+    const numberOfProducts = [
+      ...this._activeSubscriptions,
+      ...this._attachedClients.toJSON(),
+    ].reduce((acc, item) => {
+      if (item.isOAuthApp || item.isWebSession || item.plan_name) {
+        return ++acc;
+      }
+      return acc;
+    }, 0);
+    return numberOfProducts >= 4;
   },
 
   _toggleEnableSubmit() {

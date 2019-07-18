@@ -16,7 +16,7 @@
     <form novalidate>
       <p>{{#t}}You've connected your Firefox account to Mozilla products that keep you secure and productive on the web:{{/t}}</p>
 
-        <ul class="delete-account-summary-list">
+        <ul class="delete-account-summary-list {{#hasTwoColumnProductList}}two-col{{/hasTwoColumnProductList}}">
           {{#subscriptions}}
             <li>
               {{plan_name}}
