@@ -1001,6 +1001,15 @@ const Account = Backbone.Model.extend(
     },
 
     /**
+     * Fetch the account's list of settings data.
+     *
+     * @returns {Promise} - resolves with a list of settings objects.
+     */
+    getSettingsData() {
+      return this._fxaClient.account(this.get('sessionToken'));
+    },
+
+    /**
      * Fetch the account's list of active subscriptions.
      *
      * @param {Object} [supportTicket={}]

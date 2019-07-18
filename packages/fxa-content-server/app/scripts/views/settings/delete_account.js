@@ -83,9 +83,9 @@ var View = FormView.extend({
   _fetchActiveSubscriptions() {
     const account = this.getSignedInAccount();
     const start = Date.now();
-    return account.fetchActiveSubscriptions().then(subscriptions => {
+    return account.getSettingsData().then(settingsData => {
       this.logFlowEvent(`timing.subscriptions.fetch.${Date.now() - start}`);
-      this._activeSubscriptions = subscriptions;
+      this._activeSubscriptions = settingsData.subscriptions;
     });
   },
 

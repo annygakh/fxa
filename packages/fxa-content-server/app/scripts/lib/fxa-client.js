@@ -1285,6 +1285,15 @@ FxaClientWrapper.prototype = {
   getActiveSubscriptions: createClientDelegate('getActiveSubscriptions'),
 
   /**
+   * Get a list of settings data with a session token.
+   *
+   * @param {String} token A token from the OAuth server.
+   * @returns {Promise} A promise that will be fulfilled with a list of settings
+   * data.
+   */
+  account: createClientDelegate('account'),
+
+  /**
    * Create a support ticket.
    *
    * @param {String} token A token from the OAuth server.
