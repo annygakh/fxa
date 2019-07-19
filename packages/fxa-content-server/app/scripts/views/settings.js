@@ -19,6 +19,7 @@ import ClientDisconnectView from './settings/client_disconnect';
 import ClientsView from './settings/clients';
 import Cocktail from 'cocktail';
 import CommunicationPreferencesView from './settings/communication_preferences';
+import Constants from '../lib/constants';
 import DeleteAccountView from './settings/delete_account';
 import DisplayNameView from './settings/display_name';
 import Duration from 'duration';
@@ -33,6 +34,7 @@ import SubPanels from './sub_panels';
 import SubscriptionView from './settings/subscription';
 import Template from 'templates/settings.mustache';
 import UserAgentMixin from '../lib/user-agent-mixin';
+import Xss from '../lib/xss';
 
 import TwoStepAuthenticationView from './settings/two_step_authentication';
 import RecoveryCodesView from './settings/recovery_codes';
@@ -76,6 +78,12 @@ const View = BaseView.extend({
     this._subscriptionsManagementEnabled =
       options.subscriptionsManagementEnabled !== false;
 
+    if (options.config && options.config.subscriptions) {
+      this._subscriptionManagementUrl = Xss.href(
+        options.config.subscriptions.managementUrl
+      );
+    }
+
     const uid = this.relier.get('uid');
     this.notifier.trigger('set-uid', uid);
 
@@ -107,7 +115,8 @@ const View = BaseView.extend({
     const account = this.getSignedInAccount();
 
     context.set({
-      // ccExpired: true,
+      ccExpired: !!this._ccExpired,
+      escapedCcExpiredLinkAttrs: `href="${this._subscriptionManagementUrl}" class="alert-link"`,
       showSignOut: !account.isFromSync(),
       unsafeHeaderHTML: this._getHeaderHTML(account),
     });
@@ -141,7 +150,17 @@ const View = BaseView.extend({
   beforeRender() {
     const account = this.getSignedInAccount();
 
-    return account.fetchProfile().then(() => this.user.setAccount(account));
+    return Promise.all([
+      account.fetchProfile(),
+      this.user.setAccount(account),
+      account.settingsData(),
+    ]).then(([, , data]) => {
+      if (data && Array.isArray(data.subscriptions)) {
+        this._ccExpired = data.subscriptions.some(
+          s => s.failure_code === Constants.CC_EXPIRED
+        );
+      }
+    });
   },
 
   _onAccountUpdate(account) {
