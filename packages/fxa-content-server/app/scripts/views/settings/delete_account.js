@@ -32,8 +32,9 @@ var View = FormView.extend({
         notifier: options.notifier,
       });
     }
-    this._hasTwoColumnProductList = false;
     this._activeSubscriptions = [];
+    this._hasTwoColumnProductList = false;
+    this._productListError = false;
   },
 
   _formatTitleAndScope(items) {
@@ -55,6 +56,7 @@ var View = FormView.extend({
       isPanelOpen: this.isPanelOpen(),
       subscriptions: this._activeSubscriptions,
       hasTwoColumnProductList: this._hasTwoColumnProductList,
+      productListError: this._productListError,
     });
   },
 
@@ -70,10 +72,16 @@ var View = FormView.extend({
     return Promise.all([
       this._fetchAttachedClients(),
       this._fetchActiveSubscriptions(),
-    ]).then(() => {
-      this._hasTwoColumnProductList = this._setHasTwoColumnProductList();
-      return this.render();
-    });
+    ])
+      .then(() => {
+        this._hasTwoColumnProductList = this._setHasTwoColumnProductList();
+      })
+      .catch(err => {
+        this.model.set('error', err);
+        this.logError(err);
+        this._productListError = true;
+      })
+      .finally(() => this.render());
   },
 
   _fetchActiveSubscriptions() {

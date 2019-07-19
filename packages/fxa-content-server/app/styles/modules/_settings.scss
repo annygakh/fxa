@@ -370,6 +370,12 @@ section.modal-panel {
 }
 
 .delete-account {
+  &-summary-container {
+    &.hide { // error during fetch for subscriptions and/or clients
+      display: none;
+    }
+  }
+
   &-summary-list {
     padding-left: 14px;
     margin: 0 0 24px;

@@ -14,7 +14,8 @@
     <div class="error"></div>
 
     <form novalidate>
-      <p>{{#t}}You've connected your Firefox account to Mozilla products that keep you secure and productive on the web:{{/t}}</p>
+      <div class="delete-account-summary-container {{#productListError}}hide{{/productListError}}">
+        <p>{{#t}}You've connected your Firefox account to Mozilla products that keep you secure and productive on the web:{{/t}}</p>
 
         <ul class="delete-account-summary-list {{#hasTwoColumnProductList}}two-col{{/hasTwoColumnProductList}}">
           {{#subscriptions}}
@@ -36,8 +37,9 @@
               </li>
             {{/isOAuthApp}}
 
-        {{/clients}}
-      </ul>
+          {{/clients}}
+        </ul>
+      </div>
 
       <p>{{#t}}Please acknowledge that by deleting your account:{{/t}}</p>
 
