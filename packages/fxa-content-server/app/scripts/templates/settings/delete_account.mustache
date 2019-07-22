@@ -19,22 +19,28 @@
 
         <ul class="delete-account-summary-list {{#hasTwoColumnProductList}}two-col{{/hasTwoColumnProductList}}">
           {{#subscriptions}}
-            <li>
-              {{plan_name}}
-            </li>
+            {{#plan_name}}
+              <li>
+                {{plan_name}}
+              </li>
+            {{/plan_name}}
           {{/subscriptions}}
 
           {{#clients}}
             {{#isWebSession}}
+              {{#title}}
                 <li>
                   {{title}}
                 </li>
+              {{/title}}
             {{/isWebSession}}
 
             {{#isOAuthApp}}
-              <li>
-                {{name}}
-              </li>
+              {{#name}}
+                <li>
+                  {{name}}
+                </li>
+              {{/name}}
             {{/isOAuthApp}}
 
           {{/clients}}

@@ -41,6 +41,19 @@ registerSuite('delete_account', {
           .click()
           .end()
 
+          // click all required checkboxes
+          .findByCssSelector('#delete-account-subscriptions')
+          .click()
+          .end()
+
+          .findByCssSelector('#delete-account-saved-info')
+          .click()
+          .end()
+
+          .findByCssSelector('#delete-account-reactivate')
+          .click()
+          .end()
+
           // success is going to the delete account page
           .then(FunctionalHelpers.visibleByQSA('#delete-account'))
 
