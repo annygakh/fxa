@@ -309,36 +309,6 @@ describe('views/settings/delete_account', function() {
       });
     });
 
-    describe('_fetchAttachedClients', () => {
-      beforeEach(() => {
-        sinon.stub(user, 'fetchAccountAttachedClients').callsFake(() => {
-          return Promise.resolve();
-        });
-
-        return initView()
-          .then(() => {
-            assert.equal(view.logFlowEvent.callCount, 0);
-            return view._fetchAttachedClients();
-          })
-          .then(() => {
-            assert.equal(view.logFlowEvent.callCount, 1);
-            const args = view.logFlowEvent.args[0];
-            assert.lengthOf(args, 1);
-            const eventParts = args[0].split('.');
-            assert.lengthOf(eventParts, 4);
-            assert.equal(eventParts[0], 'timing');
-            assert.equal(eventParts[1], 'clients');
-            assert.equal(eventParts[2], 'fetch');
-            assert.match(eventParts[3], /^[0-9]+$/);
-          });
-      });
-
-      it('delegates to the user to fetch the device list', () => {
-        const account = view.getSignedInAccount();
-        assert.isTrue(user.fetchAccountAttachedClients.calledWith(account));
-      });
-    });
-
     describe('openPanel', () => {
       beforeEach(() => {
         return initView().then(() => {
@@ -353,21 +323,13 @@ describe('views/settings/delete_account', function() {
         });
       });
 
-      it('fetches the device list', () => {
+      it('fetches the device and subscriptions list', () => {
         assert.isTrue(
-          TestHelpers.isEventLogged(metrics, 'settings.clients.open')
+          TestHelpers.isEventLogged(metrics, 'settings.delete-account.open')
         );
         assert.isTrue(view._fetchAttachedClients.calledOnce);
+        assert.isTrue(view._fetchActiveSubscriptions.calledOnce);
       });
-
-      // WIP
-      //   it('fetches the subscriptions list', () => {
-      //     assert.isTrue(
-      //       TestHelpers.isEventLogged(metrics, 'settings.clients.open')
-      //     );
-      //     assert.isTrue(view._fetchActiveSubscriptions.calledOnce);
-      //   });
-      // });
 
       // check for 'two-col' class on `delete-account-summary-list` if count of products is >= 4 (test _setHasTwoColumnProductList method)
       // make sure submit button toggles on checkbox checks?
@@ -399,8 +361,8 @@ describe('views/settings/delete_account', function() {
 
         it('returns false if all 3 checkboxes are not checked', function() {
           $('.delete-account-checkbox').each(function(i) {
-            // leave the first one unchecked
             if (i !== 0) {
+              // leave the first one unchecked
               $(this).prop('checked', true);
             }
           });
