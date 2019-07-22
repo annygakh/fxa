@@ -5,6 +5,7 @@
 import $ from 'jquery';
 import AuthErrors from 'lib/auth-errors';
 import Broker from 'models/auth_brokers/base';
+// import AttachedClients from 'models/attached-clients';
 import chai from 'chai';
 import Metrics from 'lib/metrics';
 import Notifier from 'lib/channels/notifier';
@@ -19,25 +20,26 @@ var assert = chai.assert;
 var wrapAssertion = TestHelpers.wrapAssertion;
 
 describe('views/settings/delete_account', function() {
-  var UID = '123';
-  var account;
-  var broker;
-  var email;
-  var metrics;
-  var notifier;
-  var password = 'password';
-  var relier;
-  var tabChannelMock;
-  var user;
-  var view;
+  const UID = '123';
+  const password = 'password';
+  let account;
+  let broker;
+  let email;
+  let metrics;
+  let notifier;
+  let relier;
+  let tabChannelMock;
+  let user;
+  let view;
+  // let attachedClients;
 
-  beforeEach(function() {
+  beforeEach(() => {
     relier = new Relier();
     tabChannelMock = new NullChannel();
     user = new User();
 
     broker = new Broker({
-      relier: relier,
+      relier,
     });
 
     notifier = new Notifier({
@@ -46,12 +48,50 @@ describe('views/settings/delete_account', function() {
     metrics = new Metrics({ notifier });
 
     view = new View({
-      broker: broker,
-      metrics: metrics,
-      notifier: notifier,
-      relier: relier,
-      user: user,
+      // attachedClients,
+      broker,
+      metrics,
+      notifier,
+      relier,
+      user,
     });
+
+    // attachedClients = new AttachedClients(
+    //   [
+    //     {
+    //       deviceId: 'device-1',
+    //       os: 'Windows',
+    //       isCurrentSession: true,
+    //       isWebSession: true,
+    //       name: 'alpha',
+    //       deviceType: 'tablet',
+    //     },
+    //     {
+    //       deviceId: 'device-2',
+    //       os: 'iOS',
+    //       isCurrentSession: true,
+    //       isWebSession: false,
+    //       name: 'beta',
+    //       deviceType: 'mobile',
+    //     },
+    //     {
+    //       clientId: 'app-1',
+    //       lastAccessTime: Date.now(),
+    //       isOAuthApp: true,
+    //       name: '123Done',
+    //     },
+    //     {
+    //       clientId: 'app-2',
+    //       lastAccessTime: Date.now(),
+    //       name: 'Pocket',
+    //       scope: ['profile', 'profile:write'],
+    //       isOAuthApp: false
+    //     },
+    //   ],
+    //   {
+    //     notifier: notifier,
+    //   }
+    // );
   });
 
   afterEach(function() {
@@ -59,6 +99,12 @@ describe('views/settings/delete_account', function() {
     view.destroy();
     view = null;
   });
+
+  // describe('constructor', () => {
+  //   it('creates an `AttachedClients` instance if one not passed in', () => {
+  //     assert.ok(view._attachedClients);
+  //   });
+  // })
 
   describe('with session', function() {
     beforeEach(function() {
@@ -84,15 +130,28 @@ describe('views/settings/delete_account', function() {
       });
     });
 
+    // check for conditionals like _setHasTwoColumnProductList - if count of products is >= 4
+    // check for disabled button if checkboxes aren't all checked & enabled if so
+    // uncheck box to make sure submit button toggles?
+    // hide container div if there is an error
+    // successfully retrieves & displays products
+
     describe('isValid', function() {
-      it('returns true if password is filled out', function() {
+      it('returns true if all checkboxes are checked and password is filled out', function() {
         $('form input[type=password]').val(password);
+        $('.delete-account-checkbox').not(':checked').length === 0;
 
         assert.equal(view.isValid(), true);
       });
 
       it('returns false if password is too short', function() {
         $('form input[type=password]').val('passwor');
+
+        assert.equal(view.isValid(), false);
+      });
+
+      it('returns false if all 3 checkboxes are not checked', function() {
+        $('.delete-account-checkbox').not(':checked').length > 0;
 
         assert.equal(view.isValid(), false);
       });
@@ -117,6 +176,7 @@ describe('views/settings/delete_account', function() {
       beforeEach(function() {
         $('form input[type=email]').val(email);
         $('form input[type=password]').val(password);
+        $('.delete-account-checkbox').not(':checked').length === 0;
       });
 
       describe('success', function() {

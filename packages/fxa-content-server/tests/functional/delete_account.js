@@ -41,17 +41,11 @@ registerSuite('delete_account', {
           .click()
           .end()
 
-          // click all required checkboxes
-          .findByCssSelector('#delete-account-subscriptions')
-          .click()
-          .end()
-
-          .findByCssSelector('#delete-account-saved-info')
-          .click()
-          .end()
-
-          .findByCssSelector('#delete-account-reactivate')
-          .click()
+          // check all required checkboxes
+          .findAllByCssSelector('.delete-account-checkbox')
+          .then(checkboxes =>
+            Promise.all(checkboxes.map(checkbox => checkbox.click()))
+          )
           .end()
 
           // success is going to the delete account page
