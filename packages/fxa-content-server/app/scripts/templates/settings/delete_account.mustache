@@ -14,13 +14,13 @@
     <div class="error"></div>
 
     <form novalidate>
-      <div class="delete-account-summary-container {{#productListError}}hide{{/productListError}}">
+      <div class="delete-account-product-container {{#productListError}}hide{{/productListError}}">
         <p>{{#t}}You've connected your Firefox account to Mozilla products that keep you secure and productive on the web:{{/t}}</p>
 
-        <ul class="delete-account-summary-list {{#hasTwoColumnProductList}}two-col{{/hasTwoColumnProductList}}">
+        <ul class="delete-account-product-list {{#hasTwoColumnProductList}}two-col{{/hasTwoColumnProductList}}">
           {{#subscriptions}}
             {{#plan_name}}
-              <li>
+              <li class="delete-account-product-subscription" title="{{plan_name}}">
                 {{plan_name}}
               </li>
             {{/plan_name}}
@@ -29,7 +29,7 @@
           {{#clients}}
             {{#isWebSession}}
               {{#title}}
-                <li>
+                <li class="delete-account-product-client" title="{{title}}">
                   {{title}}
                 </li>
               {{/title}}
@@ -37,7 +37,7 @@
 
             {{#isOAuthApp}}
               {{#name}}
-                <li>
+                <li class="delete-account-product-client" title="{{title}}">
                   {{name}}
                 </li>
               {{/name}}

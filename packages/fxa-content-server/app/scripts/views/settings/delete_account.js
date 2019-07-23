@@ -37,11 +37,11 @@ var View = FormView.extend({
     this._productListError = false;
   },
 
-  _formatTitleAndScope(items) {
+  _formatTitle(items) {
     return items.map(item => {
       item.title = item.name;
-      if (item.scope) item.title += ` - ${item.scope}`;
       if (item.clientType === CLIENT_TYPE_WEB_SESSION && item.userAgent) {
+        console.log('userAgent', item.userAgent);
         item.title = item.userAgent;
       }
       return item;
@@ -52,7 +52,7 @@ var View = FormView.extend({
     const clients = this._attachedClients.toJSON();
     context.set({
       email: this.getSignedInAccount().get('email'),
-      clients: this._formatTitleAndScope(clients),
+      clients: this._formatTitle(clients),
       isPanelOpen: this.isPanelOpen(),
       subscriptions: this._activeSubscriptions,
       hasTwoColumnProductList: this._hasTwoColumnProductList,

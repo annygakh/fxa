@@ -12,10 +12,6 @@ export default {
   },
 
   validate() {
-    if (this.is(':required')) {
-      console.log('in required');
-      return this.is(':checked');
-    }
-    // otherwise, always valid
+    // always valid
   },
 };

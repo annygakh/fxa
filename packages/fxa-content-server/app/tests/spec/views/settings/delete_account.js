@@ -76,10 +76,6 @@ describe('views/settings/delete_account', function() {
       verified: true,
     });
 
-    sinon.stub(account, 'isSignedIn').callsFake(() => {
-      return Promise.resolve(true);
-    });
-
     attachedClients = new AttachedClients(
       [
         {
@@ -101,15 +97,15 @@ describe('views/settings/delete_account', function() {
         {
           clientId: 'app-1',
           lastAccessTime: Date.now(),
-          isOAuthApp: true,
-          name: '123Done',
+          name: 'Pocket',
+          scope: ['profile', 'profile:write'],
+          isOAuthApp: false,
         },
         {
           clientId: 'app-2',
           lastAccessTime: Date.now(),
-          name: 'Pocket',
-          scope: ['profile', 'profile:write'],
-          isOAuthApp: false,
+          isOAuthApp: true,
+          name: '123Done',
         },
       ],
       {
@@ -159,8 +155,6 @@ describe('views/settings/delete_account', function() {
         verified: true,
       });
 
-      sinon.stub(account, 'isSignedIn').callsFake(() => Promise.resolve(true));
-
       sinon.stub(view, 'getSignedInAccount').callsFake(() => account);
       sinon.stub(notifier, 'trigger').callsFake(() => {});
 
@@ -169,59 +163,38 @@ describe('views/settings/delete_account', function() {
       });
     });
 
-    // describe('render', () => {
-    //   beforeEach(() => {
-    //     sinon.spy(attachedClients, 'fetch');
+    describe('render', () => {
+      beforeEach(() => {
+        sinon.spy(attachedClients, 'fetch');
 
-    //     return initView();
-    //   });
+        return initView();
+      });
 
-    // it('does not fetch the clients list immediately to avoid startup XHR requests', () => {
-    //   assert.isFalse(attachedClients.fetch.called);
-    // });
+      it('does not fetch the clients list immediately to avoid startup XHR requests', () => {
+        assert.isFalse(attachedClients.fetch.called);
+      });
 
-    // it('renders attachedClients already in the collection', () => {
-    //   assert.ok(view.$('li.client').length, 2);
-    // });
+      it('renders attachedClients already in the collection', () => {
+        assert.ok(view.$('.delete-account-product-client').length, 2);
+      });
 
-    // it('title attribute is added', () => {
-    //   assert.equal(view.$('#app-1--- .client-name').attr('title'), '123Done');
-    //   assert.equal(
-    //     view.$('#app-2--- .client-name').attr('title'),
-    //     'Pocket - profile,profile:write'
-    //   );
-    // });
-
-    // it('renders attachedClients and apps', () => {
-    //   assert.equal(
-    //     view
-    //       .$('#clients .settings-unit-title')
-    //       .text()
-    //       .trim(),
-    //     'Devices & apps'
-    //   );
-    //   assert.ok(
-    //     view
-    //       .$('#clients')
-    //       .text()
-    //       .trim()
-    //       .indexOf('manage your attachedClients and apps below')
-    //   );
-    // });
-
-    // it('properly sets the type of devices', () => {
-    //   assert.ok(view.$('#-device-1--').hasClass('tablet'));
-    //   assert.notOk(view.$('#-device-1--').hasClass('desktop'));
-    //   assert.equal(view.$('#-device-1--').data('os'), 'Windows');
-    //   assert.ok(view.$('#-device-2--').hasClass('mobile'));
-    //   assert.notOk(view.$('#-device-2--').hasClass('desktop'));
-    //   assert.equal(view.$('#-device-2--').data('os'), 'iOS');
-    //   assert.equal(
-    //     $('#container [data-get-app]').length,
-    //     0,
-    //     '0 mobile app placeholders'
-    //   );
-    // });
+      it('renders only `isWebSession: true`, `isOAuthApp: true` clients, and properly renders title attribute', () => {
+        assert.equal(
+          view
+            .$('.delete-account-product-client')
+            .eq(0)
+            .attr('title'),
+          'alpha'
+        );
+        assert.equal(
+          view
+            .$('.delete-account-product-client')
+            .eq(1)
+            .attr('title'),
+          '123Done'
+        );
+      });
+    });
 
     // it('properly sets the type of apps', () => {
     //   attachedClients = new AttachedClients(
@@ -299,8 +272,27 @@ describe('views/settings/delete_account', function() {
 
       it('delegates to the user to fetch the device list', () => {
         // const account = view.getSignedInAccount();
-        // assert.isTrue(user.fetchAccountAttachedClients.calledWith(account));
-        assert.isTrue(user.fetchAccountAttachedClients.calledOnce);
+        // assert.isTrue(user.fetchAccountAttachedClients.calledWith(account)); // does not pass
+        assert.isTrue(user.fetchAccountAttachedClients.calledOnce); // passes
+      });
+    });
+
+    describe('openPanel - failed fetch of attachedClients or activeSubscriptions', () => {
+      beforeEach(() => {
+        sinon.spy($.prototype, 'trigger');
+        sinon
+          .stub(view, '_fetchAttachedClients')
+          .callsFake(() => Promise.reject());
+        sinon
+          .stub(view, '_fetchActiveSubscriptions')
+          .callsFake(() => Promise.resolve());
+        return view.openPanel();
+      });
+
+      it('adds `hide` class to `delete-account-product-container` if client or subscriptions fetch fails', () => {
+        assert.isTrue(
+          view.$('.delete-account-product-container').hasClass('hide')
+        );
       });
     });
 
@@ -324,16 +316,10 @@ describe('views/settings/delete_account', function() {
         assert.isTrue(view._fetchActiveSubscriptions.calledOnce);
       });
 
-      // check for 'two-col' class on `delete-account-summary-list` if count of products is >= 4 (test _setHasTwoColumnProductList method)
-      // make sure submit button toggles on checkbox checks?
-      // successfully retrieves & displays products
+      // check for toggling submit button?
 
       // describe('adds `two-col` class to `delete-account-summary-list` if count of products is >= 4', () => {
-      // do this here or just test _setHasTwoColumnProductList?
-      // })
-
-      // describe('adds `hide` class to `delete-account-summary-container` if client or subscriptions fetch fails', () => {
-      // if promise failure - does this get done in openPanel?
+      // test _setHasTwoColumnProductList
       // })
 
       describe('isValid', function() {
@@ -383,7 +369,6 @@ describe('views/settings/delete_account', function() {
         beforeEach(function() {
           $('form input[type=email]').val(email);
           $('form input[type=password]').val(password);
-          $('.delete-account-checkbox').not(':checked').length === 0;
         });
 
         describe('success', function() {
