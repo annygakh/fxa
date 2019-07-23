@@ -41,7 +41,6 @@ var View = FormView.extend({
     return items.map(item => {
       item.title = item.name;
       if (item.clientType === CLIENT_TYPE_WEB_SESSION && item.userAgent) {
-        console.log('userAgent', item.userAgent);
         item.title = item.userAgent;
       }
       return item;
@@ -101,15 +100,17 @@ var View = FormView.extend({
   },
 
   _setHasTwoColumnProductList() {
-    const numberOfProducts = [
-      ...this._activeSubscriptions,
-      ...this._attachedClients.toJSON(),
-    ].reduce((acc, item) => {
-      if (item.isOAuthApp || item.isWebSession || item.plan_name) {
-        return ++acc;
+    let numberOfProducts = 0;
+    for (const client of this._attachedClients.toJSON()) {
+      if (client.isOAuthApp === true || client.isWebSession) {
+        numberOfProducts++;
       }
-      return acc;
-    }, 0);
+    }
+    for (const sub of this._activeSubscriptions) {
+      if (sub.plan_id && sub.status === 'active') {
+        numberOfProducts++;
+      }
+    }
     return numberOfProducts >= 4;
   },
 
