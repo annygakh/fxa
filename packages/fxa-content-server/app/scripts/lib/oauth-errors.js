@@ -146,22 +146,41 @@ var ERRORS = {
     errno: 1006,
     message: 'Invalid pairing client',
   },
-  PROMPT_NONE_WITH_UNTRUSTED: {
+  PROMPT_NONE_NOT_ENABLED: {
     errno: 1007,
-    message: 'prompt=none can only be used with trusted clients'
+    message: 'prompt=none is not enabled',
+    response_error_code: 'invalid_request',
+  },
+  PROMPT_NONE_NOT_ENABLED_FOR_CLIENT: {
+    errno: 1008,
+    message: 'prompt=none is not enabled for this client',
+    response_error_code: 'unauthorized_client',
   },
   PROMPT_NONE_WITH_KEYS: {
-    errno: 1008,
-    message: 'prompt=none cannot be used when requesting keys'
+    errno: 1009,
+    message: 'prompt=none cannot be used when requesting keys',
+    response_error_code: 'interaction_required',
   },
   PROMPT_NONE_NOT_SIGNED_IN: {
-    errno: 1009,
-    message: t('User is not signed in')
+    errno: 1010,
+    message: t('User is not signed in'),
+    response_error_code: 'login_required',
   },
   PROMPT_NONE_DIFFERENT_USER_SIGNED_IN: {
-    errno: 1010,
-    message: t('%(email) is not signed in')
-  }
+    errno: 1011,
+    message: t('%(email) is not signed in'),
+    response_error_code: 'account_selection_required',
+  },
+  PROMPT_NONE_ACCOUNT_NOT_VERIFIED: {
+    errno: 1012,
+    message: t('Account is not verified'),
+    response_error_code: 'interaction_required',
+  },
+  PROMPT_NONE_ACCOUNT_HAS_2FA: {
+    errno: 1013,
+    message: t('Account has 2FA'),
+    response_error_code: 'interaction_required',
+  },
 };
 /*eslint-enable sorting/sort-object-props*/
 

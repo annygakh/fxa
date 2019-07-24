@@ -117,8 +117,8 @@ export default {
    * @returns {Error}
    */
   toError(type, context) {
-    const errno = this.toErrno(type);
-    const message = this.toMessage(errno);
+    const errConfig = this.find(type);
+    const message = this.toMessage(errConfig);
     const err = _.isString(message) ? new Error(message) : message;
 
     if (typeof type === 'object') {
@@ -132,7 +132,9 @@ export default {
       _.extendOwn(err, type);
     }
 
-    err.errno = errno;
+    if (errConfig) {
+      _.extendOwn(err, errConfig);
+    }
     err.message = message;
     err.namespace = this.NAMESPACE;
     err.errorModule = this;

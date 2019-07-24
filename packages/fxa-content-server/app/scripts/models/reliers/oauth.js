@@ -49,6 +49,7 @@ var SIGNIN_SIGNUP_QUERY_PARAM_SCHEMA = {
     .allow(Constants.DEVICE_PAIRING_AUTHORITY_REDIRECT_URI)
     .renameTo('redirectUri'),
   redirectTo: Vat.url(),
+  return_on_error: Vat.boolean().renameTo('returnOnError'),
   scope: Vat.string()
     .required()
     .min(1),
@@ -362,13 +363,24 @@ var OAuthRelier = Relier.extend({
     return this._wantsScopeThatHasKeys;
   },
 
+  /**
+   * Ensure the prompt=none request can be used.
+   *
+   * @param {Account} account
+   * @throws {OAuthError} if prompt=none cannot be used.
+   * @returns {true}
+   */
   validatePromptNoneRequest(account) {
     if (this.get('prompt') !== Constants.OAUTH_PROMPT_NONE) {
       return true;
     }
 
-    if (! this.isTrusted()) {
-      throw OAuthErrors.toError('PROMPT_NONE_WITH_UNTRUSTED');
+    if (!this._config.isPromptNoneEnabled) {
+      throw OAuthErrors.toError('PROMPT_NONE_NOT_ENABLED');
+    }
+
+    if (!this._config.isPromptNoneEnabledForClient) {
+      throw OAuthErrors.toError('PROMPT_NONE_NOT_ENABLED_FOR_CLIENT');
     }
 
     if (this.wantsKeys()) {
@@ -379,10 +391,22 @@ var OAuthRelier = Relier.extend({
       throw OAuthErrors.toError('PROMPT_NONE_NOT_SIGNED_IN');
     }
 
-    const loginHint = this.get('loginHint');
-    if (loginHint && loginHint !== account.get('email')) {
+    if (!account.get('verified')) {
+      throw OAuthErrors.toError('PROMPT_NONE_ACCOUNT_NOT_VERIFIED');
+    }
+
+    // TODO - how are we going to check this?
+    /*
+    if (!account.get('verified')) {
+      throw OAuthErrors.toError('PROMPT_NONE_ACCOUNT_HAS_2FA');
+    }*/
+
+    const requestedEmail = this.get('email');
+    if (requestedEmail && requestedEmail !== account.get('email')) {
       throw OAuthErrors.toError('PROMPT_NONE_DIFFERENT_USER_SIGNED_IN');
     }
+
+    // TODO - handle the case where the account token is no longer valid
 
     return true;
   },

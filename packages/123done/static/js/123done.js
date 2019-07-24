@@ -14,7 +14,8 @@ $(document).ready(function() {
   let paymentURL;
   switch (window.location.host) {
     case '123done-latest.dev.lcip.org':
-      paymentURL = 'https://latest.dev.lcip.org/subscriptions/products/prod_Ex9Z1q5yVydhyk';
+      paymentURL =
+        'https://latest.dev.lcip.org/subscriptions/products/prod_Ex9Z1q5yVydhyk';
       break;
     case '123done-stage.dev.lcip.org':
       paymentURL = 'TBD';
@@ -23,7 +24,7 @@ $(document).ready(function() {
       paymentURL = '//127.0.0.1:3030/subscriptions/products/123doneProProduct';
       break;
   }
-  $('.btn-subscribe').each(function (index) {
+  $('.btn-subscribe').each(function(index) {
     $(this).attr('href', paymentURL);
   });
 
@@ -109,7 +110,7 @@ $(document).ready(function() {
     };
 
     function authenticate(endpoint) {
-      window.location.href = '/api/' + endpoint;
+      window.location.href = `/api/${endpoint}${window.location.search}`;
     }
 
     $('button.signin').click(function(ev) {
@@ -137,7 +138,7 @@ $(document).ready(function() {
     });
 
     $('button.prompt-none').click(function(ev) {
-    	authenticate('prompt_none');
+      authenticate('prompt_none');
     });
 
     // upon click of logout link navigator.id.logout()

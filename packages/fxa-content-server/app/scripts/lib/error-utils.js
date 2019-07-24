@@ -30,10 +30,13 @@ export default {
       OAuthErrors.is(error, 'INVALID_PAIRING_CLIENT') ||
       OAuthErrors.is(error, 'MISSING_PARAMETER') ||
       OAuthErrors.is(error, 'UNKNOWN_CLIENT') ||
-      OAuthErrors.is(error, 'PROMPT_NONE_WITH_UNTRUSTED') ||
+      OAuthErrors.is(error, 'PROMPT_NONE_NOT_ENABLED') ||
+      OAuthErrors.is(error, 'PROMPT_NONE_NOT_ENABLED_FOR_CLIENT') ||
       OAuthErrors.is(error, 'PROMPT_NONE_WITH_KEYS') ||
       OAuthErrors.is(error, 'PROMPT_NONE_NOT_SIGNED_IN') ||
-      OAuthErrors.is(error, 'PROMPT_NONE_DIFFERENT_USER_SIGNED_IN')
+      OAuthErrors.is(error, 'PROMPT_NONE_DIFFERENT_USER_SIGNED_IN') ||
+      OAuthErrors.is(error, 'PROMPT_NONE_ACCOUNT_NOT_VERIFIED') ||
+      OAuthErrors.is(error, 'PROMPT_NONE_ACCOUNT_HAS_2FA')
     ) {
       return FourHundredTemplate;
     }

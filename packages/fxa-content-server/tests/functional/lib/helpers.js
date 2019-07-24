@@ -1463,6 +1463,20 @@ function openFxaFromUntrustedRp(page, options) {
   return openFxaFromRp(page, options);
 }
 
+const openRP = thenify(function(options = {}) {
+  const app = options.untrusted ? UNTRUSTED_OAUTH_APP : OAUTH_APP;
+  let queryString = '';
+  if (options.query) {
+    queryString = '?' + Querystring.stringify(options.query);
+  }
+
+  const endpoint = `${app}${queryString}`;
+  console.log('opening', endpoint);
+  return this.parent.then(
+    openPage(endpoint, selectors['123DONE'].BUTTON_SIGNIN)
+  );
+});
+
 const fillOutSignIn = thenify(function(email, password, alwaysLoad) {
   return this.parent
     .getCurrentUrl()
@@ -2399,6 +2413,7 @@ module.exports = {
   openFxaFromUntrustedRp,
   openPage,
   openPasswordResetLinkInDifferentBrowser,
+  openRP,
   openSettingsInNewTab,
   openSignInInNewTab,
   openSignUpInNewTab,

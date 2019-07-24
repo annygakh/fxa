@@ -65,6 +65,7 @@ function setupOAuthFlow(req, action, options = {}, cb) {
   if (options.prompt) {
     params.prompt = options.prompt;
   }
+
   request.get(
     {
       uri: config.issuer_uri + '/.well-known/openid-configuration',
@@ -86,12 +87,21 @@ function setupOAuthFlow(req, action, options = {}, cb) {
       req.session.state = params.state;
       oauthFlows[params.state] = { params: params, config: config };
 
-      return cb(null, params, config);
+      console.log('query', req.query);
+      return cb(
+        null,
+        {
+          ...params,
+          ...req.query,
+        },
+        config
+      );
     }
   );
 }
 
 function redirectUrl(params, oauthConfig) {
+  console.log('redirecting with params', params);
   return oauthConfig.authorization_endpoint + toQueryString(params);
 }
 
@@ -179,12 +189,15 @@ module.exports = function(app, db) {
   app.get('/api/oauth', function(req, res) {
     var state = req.query.state;
     var code = req.query.code;
-    var error = parseInt(req.query.error, 10);
 
-    // The user finished the flow in a different browser.
-    // Prompt them to log in again
-    if (error === DIFFERENT_BROWSER_ERROR) {
-      return res.redirect('/?oauth_incomplete=true');
+    if (
+      req.query.error === 'login_required' ||
+      req.query.error === 'account_selection_required'
+    ) {
+      // TODO - we should really check req.session.state too.
+      return res.redirect('/api/email_first');
+    } else if (req.query.error) {
+      return res.send(400, req.query.error);
     }
 
     // state should exists in our set of active flows and the user should
@@ -249,6 +262,7 @@ module.exports = function(app, db) {
               );
             })
             .catch(function(err) {
+              console.log('caught id token', err);
               return res.send(400, err);
             });
         }

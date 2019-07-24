@@ -13,7 +13,11 @@ import CachedCredentialsMixin from './mixins/cached-credentials-mixin';
 class AuthorizationView extends BaseView {
   beforeRender() {
     if (this.relier.get('prompt') === OAUTH_PROMPT_NONE) {
-      return this._doPromptNone();
+      return (
+        this._doPromptNone()
+          // false prevents the view from further rendering
+          .then(() => false)
+      );
     }
 
     const action = this.relier.get('action');
@@ -30,7 +34,23 @@ class AuthorizationView extends BaseView {
   _doPromptNone() {
     const account = this.getSignedInAccount();
 
-    this.relier.validatePromptNoneRequest(account);
+    try {
+      this.relier.validatePromptNoneRequest(account);
+    } catch (err) {
+      if (
+        err.response_error_code &&
+        this.relier.get('returnOnError') !== false
+      ) {
+        return this.broker.sendOAuthResultToRelier({
+          error: err.response_error_code,
+          redirect: this.relier.get('redirectUri'),
+        });
+      }
+
+      // Other errors are developer facing and should be surfaced
+      // to help the developer remedy the problem.
+      throw err;
+    }
 
     return this.useLoggedInAccount(account);
   }

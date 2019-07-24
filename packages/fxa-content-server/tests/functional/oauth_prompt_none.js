@@ -5,127 +5,151 @@
 'use strict';
 
 const { registerSuite } = intern.getInterface('object');
-const assert = intern.getPlugin('chai').assert;
 const { createEmail } = require('../lib/helpers');
 const FunctionalHelpers = require('./lib/helpers');
 const config = intern._config;
-const OAUTH_APP = config.fxaOAuthApp;
 const selectors = require('./lib/selectors');
 
-const SIGNIN_URL = `${config.fxaContentRoot}signin`;
 const EMAIL_FIRST_URL = `${config.fxaContentRoot}?action=email`;
 
 const PASSWORD = 'passwordzxcv';
 
 let email;
-let secret;
 
 const {
   clearBrowserState,
   click,
-  closeCurrentWindow,
-  confirmTotpCode,
   createUser,
   fillOutEmailFirstSignIn,
-  generateTotpCode,
   openFxaFromRp,
-  openFxaFromUntrustedRp,
   openPage,
-  openVerificationLinkInNewTab,
-  switchToWindow,
+  openRP,
   testElementExists,
-  testElementValueEquals,
-  testErrorTextInclude,
-  thenify,
-  type,
+  testElementTextInclude,
 } = FunctionalHelpers;
 
-const testAtOAuthApp = thenify(function () {
-  return this.parent
-    .then(testElementExists(selectors['123DONE'].AUTHENTICATED))
-    .getCurrentUrl()
-    .then(function (url) {
-      // redirected back to the App
-      assert.ok(url.indexOf(OAUTH_APP) > -1);
-    });
-});
-
 registerSuite('oauth prompt=none', {
-  beforeEach: function () {
+  beforeEach: function() {
     email = createEmail();
 
-    return this.remote
-      .then(clearBrowserState({
+    return this.remote.then(
+      clearBrowserState({
         '123done': true,
-        contentServer: true
-      }));
+        contentServer: true,
+      })
+    );
   },
 
-  afterEach: function () {
-    return this.remote.then(clearBrowserState({
-      '123done': true,
-      contentServer: true
-    }));
+  afterEach: function() {
+    return this.remote.then(
+      clearBrowserState({
+        '123done': true,
+        contentServer: true,
+      })
+    );
   },
 
   tests: {
-    'fails RP is untrusted': function () {
+    'fails RP that is not allowed': function() {
       return this.remote
-        .then(openFxaFromUntrustedRp('prompt-none', { header: selectors['400'].HEADER }));
+        .then(openRP({ untrusted: true, query: { return_on_error: false } }))
+        .then(click(selectors['123DONE'].BUTTON_PROMPT_NONE))
+        .then(testElementExists(selectors['400'].HEADER))
+        .then(
+          testElementTextInclude(
+            selectors['400'].ERROR,
+            'prompt=none is not enabled for this client'
+          )
+        );
     },
 
-    'fails if no user logged in': function () {
+    /*    'fails if requesting keys': function () {
       return this.remote
-        .then(openFxaFromRp('prompt-none', { header: selectors['400'].HEADER }));
+        .then(openRP({ query: { return_on_error: false }}))
+        .then(click(selectors["123DONE"].BUTTON_PROMPT_NONE))
+        .then(reOpenWithAdditionalQueryParams({ keys: 'anotheruser@restmail.net '}))
+        .then(testElementExists(selectors['400'].HEADER))
+        .then(testElementTextInclude(selectors['400'].ERROR, 'prompt=none cannot be used when requesting keys'))
     },
-
-    'fails if requesting keys': function () {
+*/
+    'fails if no user logged in': function() {
       return this.remote
-        .then(openFxaFromRp('signin-pkce', { header: selectors['400'].HEADER }));
+        .then(openRP({ query: { return_on_error: false } }))
+        .then(click(selectors['123DONE'].BUTTON_PROMPT_NONE))
+        .then(testElementExists(selectors['400'].HEADER))
+        .then(
+          testElementTextInclude(
+            selectors['400'].ERROR,
+            'User is not signed in'
+          )
+        );
     },
 
-    'fails if account is not verified': function () {
-    },
+    'fails if account is not verified': function() {
+      return this.remote
+        .then(createUser(email, PASSWORD, { preVerified: false }))
 
+        .then(openPage(EMAIL_FIRST_URL, selectors.ENTER_EMAIL.HEADER))
+        .then(fillOutEmailFirstSignIn(email, PASSWORD))
+        .then(testElementExists(selectors.CONFIRM_SIGNUP.HEADER))
+
+        .then(openRP({ query: { return_on_error: false } }))
+        .then(click(selectors['123DONE'].BUTTON_PROMPT_NONE))
+        .then(testElementExists(selectors['400'].HEADER))
+        .then(
+          testElementTextInclude(
+            selectors['400'].ERROR,
+            'Account is not verified'
+          )
+        );
+    },
+    /*'
     'fails if account has TOTP enabled': function () {
     },
-
-    'fails if loginHint is different to logged in user': function () {
+    */
+    'fails if loginHint is different to logged in user': function() {
       return this.remote
         .then(createUser(email, PASSWORD, { preVerified: true }))
 
-        .then(openPage(EMAIL_FIRST_URL))
+        .then(openPage(EMAIL_FIRST_URL, selectors.ENTER_EMAIL.HEADER))
         .then(fillOutEmailFirstSignIn(email, PASSWORD))
-        .then(testElementExists(selectors.SIGNIN_COMPLETE.HEADER))
+        .then(testElementExists(selectors.SETTINGS.HEADER))
 
-        .then(openFxaFromRp('prompt-none', {
-          header: selectors['400'].HEADER,
-          query: { loginHint: 'anotheruser@restmail.net '}
-        }));
+        .then(
+          openRP({
+            query: { return_on_error: false, login_hint: createEmail() },
+          })
+        )
+        .then(click(selectors['123DONE'].BUTTON_PROMPT_NONE))
+        .then(testElementExists(selectors['400'].HEADER))
+        .then(
+          testElementTextInclude(selectors['400'].ERROR, 'is not signed in')
+        );
     },
 
-    'succeeds if no loginHint, user logged in': function () {
+    'succeeds if no loginHint, user logged in': function() {
       return this.remote
         .then(createUser(email, PASSWORD, { preVerified: true }))
 
-        .then(openPage(EMAIL_FIRST_URL))
+        .then(openPage(EMAIL_FIRST_URL, selectors.ENTER_EMAIL.HEADER))
         .then(fillOutEmailFirstSignIn(email, PASSWORD))
-        .then(testElementExists(selectors.SIGNIN_COMPLETE.HEADER))
+        .then(testElementExists(selectors.SETTINGS.HEADER))
 
         .then(openFxaFromRp('prompt-none'))
         .then(testElementExists(selectors['123DONE'].AUTHENTICATED));
     },
 
-    'succeeds if loginHint same as logged in user': function () {
+    'succeeds if loginHint same as logged in user': function() {
       return this.remote
         .then(createUser(email, PASSWORD, { preVerified: true }))
 
-        .then(openPage(EMAIL_FIRST_URL))
+        .then(openPage(EMAIL_FIRST_URL, selectors.ENTER_EMAIL.HEADER))
         .then(fillOutEmailFirstSignIn(email, PASSWORD))
-        .then(testElementExists(selectors.SIGNIN_COMPLETE.HEADER))
+        .then(testElementExists(selectors.SETTINGS.HEADER))
 
-        .then(openFxaFromRp('prompt-none', { query: { loginHint: email }}))
+        .then(openRP({ query: { login_hint: email } }))
+        .then(click(selectors['123DONE'].BUTTON_PROMPT_NONE))
         .then(testElementExists(selectors['123DONE'].AUTHENTICATED));
-    }
-  }
+    },
+  },
 });
