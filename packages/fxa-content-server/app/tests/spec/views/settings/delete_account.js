@@ -71,11 +71,6 @@ describe('views/settings/delete_account', function() {
       .stub(user, 'fetchAccountAttachedClients')
       .callsFake(() => Promise.resolve());
 
-    // this makes things fail
-    // sinon
-    //   .stub(user, 'getSettingsData')
-    //   .callsFake(() => Promise.resolve());
-
     account = user.initAccount({
       email: email,
       sessionToken: 'abc123',
@@ -126,6 +121,12 @@ describe('views/settings/delete_account', function() {
       },
     ];
 
+    sinon
+      .stub(account, 'getSettingsData')
+      .callsFake(() => Promise.resolve({
+        subscriptions: activeSubscriptions
+      }));
+
     return initView();
   });
 
@@ -161,13 +162,6 @@ describe('views/settings/delete_account', function() {
     beforeEach(() => {
       email = TestHelpers.createEmail();
 
-      account = user.initAccount({
-        email: email,
-        sessionToken: 'abc123',
-        uid: UID,
-        verified: true,
-      });
-
       sinon.stub(view, 'getSignedInAccount').callsFake(() => account);
       sinon.stub(notifier, 'trigger').callsFake(() => {});
 
@@ -179,16 +173,15 @@ describe('views/settings/delete_account', function() {
     describe('render', () => {
       beforeEach(() => {
         sinon.spy(attachedClients, 'fetch');
-        // sinon.spy(activeSubscriptions, 'fetch');
       });
 
       it('does not fetch the clients list immediately to avoid startup XHR requests', () => {
         assert.isFalse(attachedClients.fetch.called);
       });
 
-      // it('does not fetch the subscriptions list immediately to avoid startup XHR requests', () => {
-      //   assert.isFalse(activeSubscriptions.fetch.called);
-      // });
+      it('does not fetch the subscriptions list immediately to avoid startup XHR requests', () => {
+        assert.isFalse(account.getSettingsData.called);
+      });
 
       it('renders attachedClients already in the collection', () => {
         assert.ok(view.$('.delete-account-product-client').length, 2);
@@ -214,19 +207,6 @@ describe('views/settings/delete_account', function() {
           'Pocket'
         );
       });
-
-      //   it('renders only `status: "active"` subscriptions', () => {
-      //     assert.isTrue($('.delete-account-product-subscription').length === 1);
-      //   });
-
-      //   it('renders subscription title attributes', () => {
-      //     assert.equal(
-      //       view
-      //         .$('.delete-account-product-subscription')
-      //         .attr('title'),
-      //       '321done Pro Monthly'
-      //     );
-      //   });
     });
 
     describe('_fetchAttachedClients', () => {
@@ -250,75 +230,79 @@ describe('views/settings/delete_account', function() {
       });
 
       it('delegates to the user to fetch the device list', () => {
-        // const account = view.getSignedInAccount();
-        // assert.isTrue(user.fetchAccountAttachedClients.calledWith(account)); // does not pass
-        assert.isTrue(user.fetchAccountAttachedClients.calledOnce); // passes
+        const account = user.getSignedInAccount();
+        assert.isTrue(user.fetchAccountAttachedClients.calledWith(account));
       });
     });
 
-    // fails
-    // describe('_fetchActiveSubscriptions', () => {
-    //   beforeEach(() => {
-    //     return Promise.resolve()
-    //       .then(() => {
-    //         assert.equal(view.logFlowEvent.callCount, 0);
-    //         return view._fetchActiveSubscriptions();
-    //       })
-    //       .then(() => {
-    //         assert.equal(view.logFlowEvent.callCount, 1);
-    //         const args = view.logFlowEvent.args[0];
-    //         assert.lengthOf(args, 1);
-    //         const eventParts = args[0].split('.');
-    //         assert.lengthOf(eventParts, 4);
-    //         assert.equal(eventParts[0], 'timing');
-    //         assert.equal(eventParts[1], 'settings');
-    //         assert.equal(eventParts[2], 'fetch');
-    //         assert.match(eventParts[3], /^[0-9]+$/);
-    //       });
-    //   });
+    describe('_fetchActiveSubscriptions', () => {
+      beforeEach(() => {
+        return Promise.resolve()
+          .then(() => {
+            assert.equal(view.logFlowEvent.callCount, 0);
+            return view._fetchActiveSubscriptions();
+          })
+          .then(() => {
+            assert.equal(view.logFlowEvent.callCount, 1);
+            const args = view.logFlowEvent.args[0];
+            assert.lengthOf(args, 1);
+            const eventParts = args[0].split('.');
+            assert.lengthOf(eventParts, 4);
+            assert.equal(eventParts[0], 'timing');
+            assert.equal(eventParts[1], 'settings');
+            assert.equal(eventParts[2], 'fetch');
+            assert.match(eventParts[3], /^[0-9]+$/);
+          });
+      });
+      it('delegates to the account to fetch the subscriptions list from getSettingsData', () => {
+        assert.isTrue(account.getSettingsData.called);
+      });
+    });
 
-    //   it('delegates to the user to fetch the subscriptions list from getSettingsData', () => {
-    //     const account = view.getSignedInAccount();
-    //     assert.isTrue(user.getSettingsData.calledWith(account)); // orrrr
-    //     // assert.isTrue(user.getSettingsData.calledOnce);
-    //   });
-    // });
-
-    // describe('_setHasTwoColumnProductList', () => {
-
-    //   it('does not add `two-col` class to `delete-account-summary-list` if count of rendered products is 3', () => {
-    //     assert.isFalse(
-    //       view.$('.delete-account-product-list').hasClass('two-col')
-    //     );
-    //   });
-
-    //   it('adds `two-col` class to `delete-account-summary-list` if count of rendered products is 4', () => {
-    //     activeSubscriptions = [
-    //       {
-    //         plan_id: '321doneProMonthly',
-    //         plan_name: '321done Pro Monthly',
-    //         status: 'active'
-    //       },
-    //       {
-    //         plan_id: '321doneProYearly',
-    //         plan_name: '321done Pro Yearly',
-    //         status: 'inactive'
-    //       },
-    //       {
-    //         plan_id: '321doneProDaily',
-    //         plan_name: '321done Pro Daily',
-    //         status: 'active'
-    //       },
-    //     ];
-
-    //     return view.render().then(() => {
-    //       assert.isTrue(
-    //         view.$('.delete-account-product-list').hasClass('two-col')
-    //       );
-    //     });
-    //   });
-    // });
-
+    describe('_setHasTwoColumnProductList', () => {
+      it('does not add `two-col` class to `delete-account-summary-list` if count of rendered products is 3', () => {
+        assert.isFalse(
+          view.$('.delete-account-product-list').hasClass('two-col')
+        );
+      });
+      it('adds `two-col` class to `delete-account-summary-list` if count of rendered products is 4', () => {
+        activeSubscriptions = [
+          {
+            plan_id: '321doneProMonthly',
+            plan_name: '321done Pro Monthly',
+            status: 'active'
+          },
+          {
+            plan_id: '321doneProMonthly',
+            plan_name: '321done Pro Monthly',
+            status: 'active'
+          },
+          {
+            plan_id: '321doneProMonthly',
+            plan_name: '321done Pro Monthly',
+            status: 'active'
+          },
+          {
+            plan_id: '321doneProYearly',
+            plan_name: '321done Pro Yearly',
+            status: 'inactive'
+          },
+          {
+            plan_id: '321doneProDaily',
+            plan_name: '321done Pro Daily',
+            status: 'active'
+          },
+        ];
+        return view
+          .render()
+          .then(() => view.openPanel())
+          .then(() => {
+            assert.isTrue(
+              view.$('.delete-account-product-list').hasClass('two-col')
+            );
+          });
+      });
+    });
     // TO DO
     // describe('_formatTitle', () => {
     //   it('properly sets the title', () => {
@@ -348,12 +332,8 @@ describe('views/settings/delete_account', function() {
     describe('openPanel', () => {
       beforeEach(() => {
         sinon.spy($.prototype, 'trigger');
-        sinon
-          .stub(view, '_fetchAttachedClients')
-          .callsFake(() => Promise.resolve());
-        sinon
-          .stub(view, '_fetchActiveSubscriptions')
-          .callsFake(() => Promise.resolve());
+        sinon.spy(view, '_fetchAttachedClients');
+        sinon.spy(view, '_fetchActiveSubscriptions');
         return view.openPanel();
       });
 
@@ -363,6 +343,19 @@ describe('views/settings/delete_account', function() {
         );
         assert.isTrue(view._fetchAttachedClients.calledOnce);
         assert.isTrue(view._fetchActiveSubscriptions.calledOnce);
+      });
+
+      it('renders only `status: "active"` subscriptions', () => {
+        assert.isTrue($('.delete-account-product-subscription').length === 1);
+      });
+
+      it('renders subscription title attributes', () => {
+        assert.equal(
+          view
+            .$('.delete-account-product-subscription')
+            .attr('title'),
+          '321done Pro Monthly'
+        );
       });
 
       describe('isValid', function() {
